@@ -1,35 +1,13 @@
-# Dockerfile for Spring Boot Application
+FROM maven:3.8.3-openjdk-17 AS build
 
-# Option 1: Using WAR file with embedded server (RECOMMENDED for Spring Boot)
-FROM openjdk:17-jre-slim
+COPY . .
 
-WORKDIR /app
+RUN mvn clean package -DskipTests
 
-# Copy the WAR file
-COPY Inventory_Management_System-0.0.1-SNAPSHOT.war app.war
+FROM openjdk:17.0.1-jdk-slim
 
-# Expose port 8080
+COPY --from=build target/Inventory_Management_System-0.0.1-SNAPSHOT.war demo.war
+
 EXPOSE 8080
 
-# Run the Spring Boot WAR with embedded server
-CMD ["java", "-jar", "app.war"]
-
-# Option 2: Multi-stage build (if you want to build inside Docker)
-# FROM openjdk:17-jdk-slim as builder
-# WORKDIR /build
-# COPY pom.xml .
-# COPY src ./src
-# COPY mvnw .
-# COPY .mvn .mvn
-# RUN chmod +x mvnw
-# RUN ./mvnw clean package -DskipTests
-# 
-# FROM openjdk:17-jre-slim
-# WORKDIR /app
-# COPY --from=builder /build/target/*.war app.war
-# EXPOSE 8080
-# CMD ["java", "-jar", "app.war"]
-
-# Option 3: If you prefer JAR packaging
-# Change your pom.xml packaging to <packaging>jar</packaging>
-# Then use: CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT [ "java" , "-jar","demo.war"]
